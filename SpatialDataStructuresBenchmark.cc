@@ -15,7 +15,7 @@ using std::chrono::duration_cast;
 //  structures.
 #include "Versions_stlib.h"
 #include "Versions_pcl.h"
-#include "Versions_kdtree2.h"
+//#include "Versions_kdtree2.h"
 
 // This file contains the test scenario generators which form the distributions
 //  of points.
@@ -173,9 +173,11 @@ int main(int argc, char* argv[]) {
   sprintf(sprintfBuffer, "%s%s_pcl_ocTree_results%s.csv",
           prefix.c_str(), PointGenerator::getName().c_str(), suffix.c_str());
   FILE * pclOctreeFile = fopen(sprintfBuffer, "w");
+#if 0
   sprintf(sprintfBuffer, "%s%s_kdtree2_results%s.csv",
           prefix.c_str(), PointGenerator::getName().c_str(), suffix.c_str());
   FILE * kdtree2File = fopen(sprintfBuffer, "w");
+#endif
 
   // For each size
   for (unsigned int dataPointIndex = 0;
@@ -338,6 +340,7 @@ int main(int argc, char* argv[]) {
     // ********************** < do kdtree2 > ***************************
     // vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
 
+#if 0
     runTest(numberOfTrialsPerSize,
             findNeighbors_kdtree2,
             points,
@@ -354,6 +357,7 @@ int main(int argc, char* argv[]) {
                 string("kdtree2"));
     fprintf(kdtree2File, "%10.4e, %10.4e, %10.4e\n",
             double(numberOfPoints), initializationTime, queryingTime);
+#endif
 
     // ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
     // ********************** < do kdtree2 > ***************************
@@ -373,7 +377,9 @@ int main(int argc, char* argv[]) {
   fclose(stlibKdTreeFile);
   fclose(pclKdTreeFile);
   fclose(pclOctreeFile);
+#if 0
   fclose(kdtree2File);
+#endif
 
   return 0;
 }
