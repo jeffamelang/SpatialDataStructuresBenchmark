@@ -22,7 +22,7 @@ stlib_octTree = numpy.loadtxt(open(prefix + 'stlib_octTree_results' + suffix + '
 stlib_kdTree = numpy.loadtxt(open(prefix + 'stlib_kdTree_results' + suffix + '.csv','rb'),delimiter=',',skiprows=0)
 pcl_kdTree = numpy.loadtxt(open(prefix + 'pcl_kdTree_results' + suffix + '.csv','rb'),delimiter=',',skiprows=0)
 pcl_ocTree = numpy.loadtxt(open(prefix + 'pcl_ocTree_results' + suffix + '.csv','rb'),delimiter=',',skiprows=0)
-kdtree2 = numpy.loadtxt(open(prefix + 'kdtree2_results' + suffix + '.csv','rb'),delimiter=',',skiprows=0)
+#kdtree2 = numpy.loadtxt(open(prefix + 'kdtree2_results' + suffix + '.csv','rb'),delimiter=',',skiprows=0)
 
 for column in range(1, 3):
   if column == 1:
@@ -42,8 +42,8 @@ for column in range(1, 3):
   legendNames.append('pcl_kdTree')
   plt.plot(stlib_cellArray[:,0], stlib_cellArray[:,column] / pcl_ocTree[:,column], color='k', linestyle='dashed', hold='on', linewidth=2)
   legendNames.append('pcl_ocTree')
-  plt.plot(stlib_cellArray[:,0], stlib_cellArray[:,column] / kdtree2[:,column], color='b', linestyle='dashdot', hold='on', linewidth=2)
-  legendNames.append('kdtree2')
+  #plt.plot(stlib_cellArray[:,0], stlib_cellArray[:,column] / kdtree2[:,column], color='b', linestyle='dashdot', hold='on', linewidth=2)
+  #legendNames.append('kdtree2')
   plt.title('speedup of ' + flavorName, fontsize=16)
   plt.xlabel('number of points [-]', fontsize=16)
   plt.ylabel('speedup [-]', fontsize=16)
