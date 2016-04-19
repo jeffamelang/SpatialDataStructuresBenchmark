@@ -20,10 +20,10 @@
 #include <fstream>
 
 // stlib includes
-#include <geom/orq/Octree.h>
+#include <stlib/geom/orq/Octree.h>
 
 typedef std::array<double, 3> Point;
-typedef geom::BBox<double, 3> BoundingBox;
+typedef stlib::geom::BBox<double, 3> BoundingBox;
 
 // This is a little utility function that can be used to suppress any
 //  compiler warnings about unused variables.
