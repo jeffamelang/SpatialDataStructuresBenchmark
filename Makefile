@@ -1,9 +1,9 @@
 CC = g++
 
+CC_FLAGS = -Wall -Wextra -std=c++11 -O3
+
 # include variables from other makefiles for each type of library
 include *.sdbs.mk
-
-CC_FLAGS = -Wall -Wextra -std=c++11 -O3
 
 TARGETS = SpatialDataStructuresBenchmark
 
@@ -13,6 +13,6 @@ SpatialDataStructuresBenchmark: SpatialDataStructuresBenchmark.cc PointScenarioG
 	$(CC) $< -o $@ $(CC_INCLUDE) $(LD_FLAGS) $(CC_FLAGS)
 
 clean:
-	rm -f $(TARGETS)
+	rm -f $(TARGETS) *.o
 
 again: clean $(TARGETS)

@@ -1,8 +1,9 @@
-// -*- C++ -*-
 #ifndef VERSIONS_STLIB_H
 #define VERSIONS_STLIB_H
 
 #include "CommonDefinitions.h"
+
+#include <vector>
 
 // stlib includes
 #include <stlib/geom/orq/Octree.h>
@@ -10,6 +11,7 @@
 #include <stlib/geom/orq/CellArrayNeighbors.h>
 
 // a little naughty, yeah.
+using std::vector;
 using std::chrono::high_resolution_clock;
 using std::chrono::duration;
 using std::chrono::duration_cast;
@@ -194,8 +196,6 @@ findNeighbors_stlibKdTree(const vector<Point> & points,
     duration_cast<duration<double> >(initializationToc - initializationTic).count();
   *queryingTime =
     duration_cast<duration<double> >(queryingToc - initializationToc).count();
-
-
 }
+#endif // DEFINED VERSIONS_STLIB_H
 
-#endif // VERSIONS_STLIB_H

@@ -37,3 +37,9 @@
 
 # Assignment-specific things to ignore
 SpatialDataStructuresBenchmark
+
+*.csv
+*.pdf
+*.swp
+*.DS_Store
+*.nfs*
