@@ -23,9 +23,6 @@ using std::chrono::duration_cast;
 
 #include "Versions_stlib.h"
 #include "Versions_pcl.h"
-#if 0
-#include "Versions_kdtree2.h"
-#endif
 
 vector<std::pair<Function, std::string>> functions = {
   std::make_pair(findNeighbors_stlibCellArray, "stlib_cellarray"),
@@ -33,9 +30,6 @@ vector<std::pair<Function, std::string>> functions = {
   std::make_pair(findNeighbors_stlibKdTree, "stlib_kdtree"),
   std::make_pair(findNeighbors_pclKdTree, "pcl_kdtree"),
   std::make_pair(findNeighbors_pclOctree, "pcl_octree"),
-  #if 0
-  std::make_pair(findNeighbors_kdtree2, "kdtree2")
-  #endif
 };
 
 // This is a result checking function to make sure we have the right answer.
@@ -110,24 +104,10 @@ checkResult(const vector<unsigned int> & correctResult,
   }
 }
 
-
-int main(int argc, char* argv[]) {
-  ignoreUnusedVariable(argc);
-  ignoreUnusedVariable(argv);
-
-  // ===========================================================================
-  // *************************** < Inputs> *************************************
-  // vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
-
-  const array<double, 2> numberOfPointsRange = {{1e3, 1e5}};
-  const unsigned int numberOfDataPoints      = 10;
-  const unsigned int numberOfTrialsPerSize   = 3;
-  const double neighborSearchDistance        = 1.0;
-  typedef PointScenarioGenerators::UniformRandomWithAverageNumberOfNeighbors PointGenerator;
-
-  // ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  // *************************** </Inputs> *************************************
-  // ===========================================================================
+template <typename PointGeneratorType>
+void runTestsWithPointGenerator(const double minNumPoints, const double maxNumPoints, const unsigned int numberOfDataPoints, const unsigned int numberOfTrialsPerSize, const double neighborSearchDistance) {
+  printf("Running tests for %s\n", PointGeneratorType::getName().c_str());
+  const array<double, 2> numberOfPointsRange = {{minNumPoints, maxNumPoints}};
 
   char sprintfBuffer[500];
 
@@ -141,7 +121,7 @@ int main(int argc, char* argv[]) {
   
   for (const auto& item : functions) {
     sprintf(sprintfBuffer, "%s%s_%s_results%s.csv", 
-            prefix.c_str(), PointGenerator::getName().c_str(), 
+            prefix.c_str(), PointGeneratorType::getName().c_str(), 
             std::get<1>(item).c_str(), suffix.c_str());
     versions.push_back(
       std::make_tuple(
@@ -149,7 +129,7 @@ int main(int argc, char* argv[]) {
         std::get<0>(item), 
         fopen(sprintfBuffer, "w")));
   }
-
+  
   // For each size
   for (unsigned int dataPointIndex = 0;
        dataPointIndex < numberOfDataPoints;
@@ -168,7 +148,7 @@ int main(int argc, char* argv[]) {
     vector<Point> points;
 
     const unsigned int averageNumberOfNeighborsPerPoint = 70;
-    PointGenerator::generatePoints(numberOfPoints,
+    PointGeneratorType::generatePoints(numberOfPoints,
                                    averageNumberOfNeighborsPerPoint,
                                    neighborSearchDistance, &points);
 
@@ -231,6 +211,13 @@ int main(int argc, char* argv[]) {
   for (const auto& function : versions) {
     fclose(std::get<2>(function));
   }
+}
 
-  return 0;
+
+int main(int argc, char* argv[]) {
+  ignoreUnusedVariable(argc);
+  ignoreUnusedVariable(argv);
+
+  //runTestsWithPointGenerator<PointScenarioGenerators::UniformRandomWithAverageNumberOfNeighbors>(1e3, 1e5, 10, 3, 1);
+  runTestsWithPointGenerator<PointScenarioGenerators::GaussianDistribution>(1e3, 1e5, 10, 3, 1);
 }
