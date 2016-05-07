@@ -3,6 +3,7 @@
 #define VERSIONS_KDTREE2_H
 
 #include "CommonDefinitions.h"
+#include "SpatialDataStructuresBenchmark.h"
 
 // kdtree2 include
 #include "kdtree2.hpp"
@@ -14,7 +15,7 @@ using std::chrono::duration_cast;
 
 
 void
-findNeighbors_kdtree2(const vector<Point> & points,
+findneighbors_kdtree2(const vector<Point> & points,
                       const BoundingBox & pointsBoundingBox,
                       const double neighborSearchDistance,
                       vector<unsigned int> * const result,
@@ -79,7 +80,8 @@ findNeighbors_kdtree2(const vector<Point> & points,
     duration_cast<duration<double> >(initializationToc - initializationTic).count();
   *queryingTime =
     duration_cast<duration<double> >(queryingToc - initializationToc).count();
-
 }
+
+functions.push_back(std::make_pair("kdtree2", findneighbors_kdtree2));
 
 #endif // VERSIONS_KDTREE2_H

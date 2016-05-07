@@ -2,7 +2,13 @@
 // SpatialDataStructuresBenchmark.cc
 // An example to compare the efficiency of different spatial data structures
 
-#include "CommonDefinitions.h"
+#include "SpatialDataStructuresBenchmark.h"
+
+#include <string>
+#include <vector>
+#include <array>
+#include <chrono>
+#include <tuple>
 
 using std::string;
 using std::vector;
@@ -11,15 +17,26 @@ using std::chrono::high_resolution_clock;
 using std::chrono::duration;
 using std::chrono::duration_cast;
 
-// These files contain the functions which run the different spatial data
-//  structures.
-#include "Versions_stlib.h"
-#include "Versions_pcl.h"
-//#include "Versions_kdtree2.h"
-
 // This file contains the test scenario generators which form the distributions
 //  of points.
 #include "PointScenarioGenerators.h"
+
+#include "Versions_stlib.h"
+#include "Versions_pcl.h"
+#if 0
+#include "Versions_kdtree2.h"
+#endif
+
+vector<std::pair<Function, std::string>> functions = {
+  std::make_pair(findNeighbors_stlibCellArray, "stlib_cellarray"),
+  std::make_pair(findNeighbors_stlibOctTree, "stlib_octree"),
+  std::make_pair(findNeighbors_stlibKdTree, "stlib_kdtree"),
+  std::make_pair(findNeighbors_pclKdTree, "pcl_kdtree"),
+  std::make_pair(findNeighbors_pclOctree, "pcl_octree"),
+  #if 0
+  std::make_pair(findNeighbors_kdtree2, "kdtree2")
+  #endif
+};
 
 // This is a result checking function to make sure we have the right answer.
 void
@@ -93,43 +110,6 @@ checkResult(const vector<unsigned int> & correctResult,
   }
 }
 
-template <class Function>
-void
-runTest(const unsigned int numberOfTrials,
-        const Function function,
-        const vector<Point> & points,
-        const BoundingBox & pointsBoundingBox,
-        const double neighborSearchDistance,
-        vector<unsigned int> * const result,
-        vector<unsigned int> * const resultDelimiters,
-        double * const initializationTime,
-        double * const queryingTime) {
-
-  *initializationTime = std::numeric_limits<double>::max();
-  *queryingTime = std::numeric_limits<double>::max();
-
-  for (unsigned int trialNumber = 0;
-       trialNumber < numberOfTrials; ++trialNumber) {
-
-    double thisTrialsInitializationTime = std::numeric_limits<double>::max();
-    double thisTrialsQueryingTime = std::numeric_limits<double>::max();
-
-    result->resize(0);
-    resultDelimiters->resize(0);
-
-    // Do the test
-    function(points, pointsBoundingBox, neighborSearchDistance,
-             result, resultDelimiters,
-             &thisTrialsInitializationTime, &thisTrialsQueryingTime);
-
-    // Take the minimum values from all trials
-    *initializationTime =
-      std::min(*initializationTime, thisTrialsInitializationTime);
-    *queryingTime =
-      std::min(*queryingTime, thisTrialsQueryingTime);
-  }
-
-}
 
 int main(int argc, char* argv[]) {
   ignoreUnusedVariable(argc);
@@ -157,27 +137,18 @@ int main(int argc, char* argv[]) {
   // Make sure that the data directory exists.
   Utilities::verifyThatDirectoryExists("data");
 
-  // Open output files
-  sprintf(sprintfBuffer, "%s%s_stlib_cellArray_results%s.csv",
-          prefix.c_str(), PointGenerator::getName().c_str(), suffix.c_str());
-  FILE * stlibCellArrayFile = fopen(sprintfBuffer, "w");
-  sprintf(sprintfBuffer, "%s%s_stlib_octTree_results%s.csv",
-          prefix.c_str(), PointGenerator::getName().c_str(), suffix.c_str());
-  FILE * stlibOctTreeFile = fopen(sprintfBuffer, "w");
-  sprintf(sprintfBuffer, "%s%s_stlib_kdTree_results%s.csv",
-          prefix.c_str(), PointGenerator::getName().c_str(), suffix.c_str());
-  FILE * stlibKdTreeFile = fopen(sprintfBuffer, "w");
-  sprintf(sprintfBuffer, "%s%s_pcl_kdTree_results%s.csv",
-          prefix.c_str(), PointGenerator::getName().c_str(), suffix.c_str());
-  FILE * pclKdTreeFile = fopen(sprintfBuffer, "w");
-  sprintf(sprintfBuffer, "%s%s_pcl_ocTree_results%s.csv",
-          prefix.c_str(), PointGenerator::getName().c_str(), suffix.c_str());
-  FILE * pclOctreeFile = fopen(sprintfBuffer, "w");
-#if 0
-  sprintf(sprintfBuffer, "%s%s_kdtree2_results%s.csv",
-          prefix.c_str(), PointGenerator::getName().c_str(), suffix.c_str());
-  FILE * kdtree2File = fopen(sprintfBuffer, "w");
-#endif
+  vector<std::tuple<string, Function, FILE*>> versions;
+  
+  for (const auto& item : functions) {
+    sprintf(sprintfBuffer, "%s%s_%s_results%s.csv", 
+            prefix.c_str(), PointGenerator::getName().c_str(), 
+            std::get<1>(item).c_str(), suffix.c_str());
+    versions.push_back(
+      std::make_tuple(
+        std::get<1>(item), 
+        std::get<0>(item), 
+        fopen(sprintfBuffer, "w")));
+  }
 
   // For each size
   for (unsigned int dataPointIndex = 0;
@@ -214,12 +185,9 @@ int main(int argc, char* argv[]) {
     double initializationTime;
     double queryingTime;
 
-    // =========================================================================
-    // ********************** < do stlib cellArray > ***************************
-    // vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
-
+    // Get the correct result from the cell array
     runTest(numberOfTrialsPerSize,
-            findNeighbors_stlibCellArray,
+            std::get<1>(versions[0]),
             points,
             pointsBoundingBox,
             neighborSearchDistance,
@@ -229,139 +197,27 @@ int main(int argc, char* argv[]) {
             &queryingTime);
     const vector<unsigned int> correctResult           = result;
     const vector<unsigned int> correctResultDelimiters = resultDelimiters;
-    fprintf(stlibCellArrayFile, "%10.4e, %10.4e, %10.4e\n",
-            double(numberOfPoints), initializationTime, queryingTime);
+    
+    // Test for this function's result
+    for (const auto& function : versions) {
+      runTest(numberOfTrialsPerSize,
+              std::get<1>(function),
+              points,
+              pointsBoundingBox,
+              neighborSearchDistance,
+              &result,
+              &resultDelimiters,
+              &initializationTime,
+              &queryingTime);
+      checkResult(correctResult,
+                  correctResultDelimiters,
+                  result,
+                  resultDelimiters,
+                  std::get<0>(function));
+      fprintf(std::get<2>(function), "%10.4e, %10.4e, %10.4e\n", 
+              static_cast<double>(numberOfPoints), initializationTime, queryingTime);
 
-    // ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-    // ********************** < do stlib cellArray > ***************************
-    // =========================================================================
-
-    // =========================================================================
-    // ********************** < do stlib octTree > ***************************
-    // vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
-
-    runTest(numberOfTrialsPerSize,
-            findNeighbors_stlibOctTree,
-            points,
-            pointsBoundingBox,
-            neighborSearchDistance,
-            &result,
-            &resultDelimiters,
-            &initializationTime,
-            &queryingTime);
-    checkResult(correctResult,
-                correctResultDelimiters,
-                result,
-                resultDelimiters,
-                string("stlib octTree"));
-    fprintf(stlibOctTreeFile, "%10.4e, %10.4e, %10.4e\n",
-            double(numberOfPoints), initializationTime, queryingTime);
-
-    // ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-    // ********************** < do stlib octTree > ***************************
-    // =========================================================================
-
-    // =========================================================================
-    // ********************** < do stlib kdTree > ***************************
-    // vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
-
-    runTest(numberOfTrialsPerSize,
-            findNeighbors_stlibKdTree,
-            points,
-            pointsBoundingBox,
-            neighborSearchDistance,
-            &result,
-            &resultDelimiters,
-            &initializationTime,
-            &queryingTime);
-    checkResult(correctResult,
-                correctResultDelimiters,
-                result,
-                resultDelimiters,
-                string("stlib kdTree"));
-    fprintf(stlibKdTreeFile, "%10.4e, %10.4e, %10.4e\n",
-            double(numberOfPoints), initializationTime, queryingTime);
-
-    // ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-    // ********************** < do stlib kdTree > ***************************
-    // =========================================================================
-
-    // =========================================================================
-    // ********************** < do pcl kdTree > ***************************
-    // vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
-
-    runTest(numberOfTrialsPerSize,
-            findNeighbors_pclKdTree,
-            points,
-            pointsBoundingBox,
-            neighborSearchDistance,
-            &result,
-            &resultDelimiters,
-            &initializationTime,
-            &queryingTime);
-    checkResult(correctResult,
-                correctResultDelimiters,
-                result,
-                resultDelimiters,
-                string("pcl kdTree"));
-    fprintf(pclKdTreeFile, "%10.4e, %10.4e, %10.4e\n",
-            double(numberOfPoints), initializationTime, queryingTime);
-
-    // ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-    // ********************** < do pcl kdTree > ***************************
-    // =========================================================================
-
-    // =========================================================================
-    // ********************** < do pcl octree > ***************************
-    // vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
-
-    runTest(numberOfTrialsPerSize,
-            findNeighbors_pclOctree,
-            points,
-            pointsBoundingBox,
-            neighborSearchDistance,
-            &result,
-            &resultDelimiters,
-            &initializationTime,
-            &queryingTime);
-    checkResult(correctResult,
-                correctResultDelimiters,
-                result,
-                resultDelimiters,
-                string("pcl octree"));
-    fprintf(pclOctreeFile, "%10.4e, %10.4e, %10.4e\n",
-            double(numberOfPoints), initializationTime, queryingTime);
-
-    // ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-    // ********************** < do pcl octree > ***************************
-    // =========================================================================
-
-    // =========================================================================
-    // ********************** < do kdtree2 > ***************************
-    // vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
-
-#if 0
-    runTest(numberOfTrialsPerSize,
-            findNeighbors_kdtree2,
-            points,
-            pointsBoundingBox,
-            neighborSearchDistance,
-            &result,
-            &resultDelimiters,
-            &initializationTime,
-            &queryingTime);
-    checkResult(correctResult,
-                correctResultDelimiters,
-                result,
-                resultDelimiters,
-                string("kdtree2"));
-    fprintf(kdtree2File, "%10.4e, %10.4e, %10.4e\n",
-            double(numberOfPoints), initializationTime, queryingTime);
-#endif
-
-    // ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-    // ********************** < do kdtree2 > ***************************
-    // =========================================================================
+    }
 
     const high_resolution_clock::time_point thisSizesToc =
       high_resolution_clock::now();
@@ -372,14 +228,9 @@ int main(int argc, char* argv[]) {
 
   }
 
-  fclose(stlibCellArrayFile);
-  fclose(stlibOctTreeFile);
-  fclose(stlibKdTreeFile);
-  fclose(pclKdTreeFile);
-  fclose(pclOctreeFile);
-#if 0
-  fclose(kdtree2File);
-#endif
+  for (const auto& function : versions) {
+    fclose(std::get<2>(function));
+  }
 
   return 0;
 }

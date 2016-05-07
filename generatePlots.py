@@ -16,12 +16,11 @@ pointGeneratorName = 'uniformRandomWithAverageNumberOfNeighbors'
 prefix = 'data/SpatialDataStructuresBenchmark_' + pointGeneratorName + '_'
 suffix = '_knuth'
 outputPrefix = 'figures/SpatialDataStructuresBenchmark_' + pointGeneratorName + '_'
-
-stlib_cellArray = numpy.loadtxt(open(prefix + 'stlib_cellArray_results' + suffix + '.csv','rb'),delimiter=',',skiprows=0)
-stlib_octTree = numpy.loadtxt(open(prefix + 'stlib_octTree_results' + suffix + '.csv','rb'),delimiter=',',skiprows=0)
-stlib_kdTree = numpy.loadtxt(open(prefix + 'stlib_kdTree_results' + suffix + '.csv','rb'),delimiter=',',skiprows=0)
-pcl_kdTree = numpy.loadtxt(open(prefix + 'pcl_kdTree_results' + suffix + '.csv','rb'),delimiter=',',skiprows=0)
-pcl_ocTree = numpy.loadtxt(open(prefix + 'pcl_ocTree_results' + suffix + '.csv','rb'),delimiter=',',skiprows=0)
+stlib_cellArray = numpy.loadtxt(open(prefix + 'stlib_cellarray_results' + suffix + '.csv','rb'),delimiter=',',skiprows=0)
+stlib_octTree = numpy.loadtxt(open(prefix + 'stlib_octree_results' + suffix + '.csv','rb'),delimiter=',',skiprows=0)
+stlib_kdTree = numpy.loadtxt(open(prefix + 'stlib_kdtree_results' + suffix + '.csv','rb'),delimiter=',',skiprows=0)
+pcl_kdTree = numpy.loadtxt(open(prefix + 'pcl_kdtree_results' + suffix + '.csv','rb'),delimiter=',',skiprows=0)
+pcl_ocTree = numpy.loadtxt(open(prefix + 'pcl_octree_results' + suffix + '.csv','rb'),delimiter=',',skiprows=0)
 #kdtree2 = numpy.loadtxt(open(prefix + 'kdtree2_results' + suffix + '.csv','rb'),delimiter=',',skiprows=0)
 
 for column in range(1, 3):
