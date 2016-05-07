@@ -5,6 +5,7 @@
 #include "CommonDefinitions.h"
 
 namespace PointScenarioGenerators {
+
 struct UniformRandomWithAverageNumberOfNeighbors {
 
   static
@@ -33,7 +34,7 @@ struct UniformRandomWithAverageNumberOfNeighbors {
   static
   std::string
   getName() {
-    return string("uniformRandomWithAverageNumberOfNeighbors");
+    return std::string("uniformRandomWithAverageNumberOfNeighbors");
   }
 
 };
@@ -79,7 +80,36 @@ struct NonUniformRandomWithAverageNumberOfNeighbors {
   static
   std::string
   getName() {
-    return string("nonuniformRandomWithAverageNumberOfNeighbors");
+    return std::string("nonuniformRandomWithAverageNumberOfNeighbors");
+  }
+
+};
+
+struct GaussianDistribution {
+
+  static
+  void
+  generatePoints(const unsigned int numberOfPoints,
+                 const unsigned int averageNumberOfNeighborsPerPoint,
+                 const double neighborSearchDistance,
+                 vector<Point> * points) {
+    ignoreUnusedVariable(averageNumberOfNeighborsPerPoint);
+
+    std::default_random_engine randomNumberEngine;
+    std::normal_distribution<> randomNumberGenerator(0, neighborSearchDistance);
+    for (unsigned int pointIndex = 0;
+         pointIndex < numberOfPoints; ++pointIndex) {
+      points->push_back((Point)
+                        {{randomNumberGenerator(randomNumberEngine),
+                              randomNumberGenerator(randomNumberEngine),
+                              randomNumberGenerator(randomNumberEngine)}});
+    }
+  }
+
+  static
+  std::string
+  getName() {
+    return std::string("gaussianDistribution");
   }
 
 };
